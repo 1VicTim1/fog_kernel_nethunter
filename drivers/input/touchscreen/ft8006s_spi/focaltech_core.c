@@ -1302,11 +1302,18 @@ static void fts_resume_work(struct work_struct *work)
     fts_ts_resume(ts_data->dev);
 }
 
+static void fts_suspend_work(struct work_struct *work)
+{
+    struct fts_ts_data *ts_data = container_of(work, struct fts_ts_data,
+                    suspend_work);
+ 
+    fts_ts_suspend(ts_data->dev);
+}
+
 static int drm_notifier_callback(struct notifier_block *self,
                                  unsigned long event, void *data)
 {
     struct drm_notify_data *evdata = data;
-    struct fts_ts_data *ts_data = container_of(self, struct fts_ts_data, drm_notif);
     int *blank = NULL;
     
     if (!evdata) {
@@ -1332,8 +1339,7 @@ static int drm_notifier_callback(struct notifier_block *self,
         break;
     case DRM_BLANK_POWERDOWN:
         if (DRM_EARLY_EVENT_BLANK == event) {
-            cancel_work_sync(&fts_data->resume_work);
-            fts_ts_suspend(ts_data->dev);
+            queue_work(fts_data->ts_workqueue, &fts_data->suspend_work);
         } else if (DRM_EVENT_BLANK == event) {
             FTS_DEBUG("suspend: event = %lu, not care\n", event);
         }
@@ -1466,6 +1472,7 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
 
     if (ts_data->ts_workqueue) {
         INIT_WORK(&ts_data->resume_work, fts_resume_work);
+        INIT_WORK(&ts_data->suspend_work, fts_suspend_work);
     }
 
 #if defined(CONFIG_PM) && FTS_PATCH_COMERR_PM
