@@ -239,7 +239,7 @@
 /*
  * enable tp usb plugin feature
  */
-#define LCT_TP_USB_PLUGIN                       1
+#define LCT_TP_USB_PLUGIN                       0
 
 /*
  * module_id: mean vendor_id generally, also maybe gpio or lcm_id...
