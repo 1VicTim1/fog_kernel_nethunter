@@ -7,7 +7,7 @@ SECONDS=0 # builtin bash timer
 ZIPNAME="vauxite-$(date '+%Y%m%d-%H%M')-spes.zip"
 TC_DIR="$(pwd)/tc/clang-r450784e"
 AK3_DIR="$(pwd)/android/AnyKernel3"
-DEFCONFIG="vendor/spes-perf_defconfig"
+DEFCONFIG=".config"
 
 if test -z "$(git rev-parse --show-cdup 2>/dev/null)" &&
    head=$(git rev-parse --verify HEAD 2>/dev/null); then
@@ -45,10 +45,10 @@ if [[ $1 = "-c" || $1 = "--clean" ]]; then
 fi
 
 mkdir -p out
-make O=out ARCH=arm64 $DEFCONFIG
+make O=out ARCH=arm64 SUBARCH=arm64 LLVM=1 LLVM_IAS=1 $DEFCONFIG
 
 echo -e "\nStarting compilation...\n"
-make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 Image.gz dtb.img dtbo.img 2> >(tee log.txt >&2) || exit $?
+make -j$(nproc --all) O=out ARCH=arm64 SUBARCH=arm64 LLVM=1 LLVM_IAS=1 Image.gz dtb.img dtbo.img 2> >(tee log.txt >&2) || exit $?
 
 kernel="out/arch/arm64/boot/Image.gz"
 dtb="out/arch/arm64/boot/dtb.img"
